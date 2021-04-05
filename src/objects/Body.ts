@@ -28,6 +28,8 @@ export type BodyOptions = {
   collisionFilterGroup?: number
   collisionFilterMask?: number
   collisionResponse?: boolean
+  ccdSpeedThreshold?: number
+  ccdIterations?: number
   position?: Vec3
   velocity?: Vec3
   mass?: number
@@ -89,6 +91,8 @@ export class Body extends EventTarget {
   collisionFilterGroup: number
   collisionFilterMask: number
   collisionResponse: boolean // Whether to produce contact forces when in contact with other bodies. Note that contacts will be generated, but they will be disabled - i.e. "collide" events will be raised, but forces will not be altered.
+  ccdSpeedThreshold: number
+  ccdIterations: number
   position: Vec3 // World space position of the body.
   previousPosition: Vec3
   interpolatedPosition: Vec3 // Interpolated position of the body.
@@ -157,14 +161,14 @@ export class Body extends EventTarget {
     this.index = -1
     this.world = null
     this.preStep = null
-    this.ccdSpeedThreshold = typeof options.ccdSpeedThreshold === 'number' ? options.ccdSpeedThreshold : 10
-    this.ccdIterations = typeof options.ccdIterations == 'number' ? options.ccdIterations : 30
     this.postStep = null
     this.vlambda = new Vec3()
 
     this.collisionFilterGroup = typeof options.collisionFilterGroup === 'number' ? options.collisionFilterGroup : 1
     this.collisionFilterMask = typeof options.collisionFilterMask === 'number' ? options.collisionFilterMask : -1
     this.collisionResponse = typeof options.collisionResponse === 'boolean' ? options.collisionResponse : true
+    this.ccdSpeedThreshold = typeof options.ccdSpeedThreshold === 'number' ? options.ccdSpeedThreshold : 10
+    this.ccdIterations = typeof options.ccdIterations == 'number' ? options.ccdIterations : 30
     this.position = new Vec3()
     this.previousPosition = new Vec3()
     this.interpolatedPosition = new Vec3()
@@ -262,8 +266,6 @@ export class Body extends EventTarget {
     }
 
     this.updateMassProperties()
-
-    console.log('compilation test')
   }
 
   /**
@@ -760,6 +762,7 @@ export class Body extends EventTarget {
     this.updateInertiaWorld()
   }
 
+  /*
   integrateToTimeOfImpact(dt: number): boolean {
     const direction = new Vec3(),
           end = new Vec3(),
@@ -847,6 +850,7 @@ export class Body extends EventTarget {
 
     return true
   }
+  */
 }
 
 /**
