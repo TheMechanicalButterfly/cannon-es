@@ -262,6 +262,8 @@ export class Body extends EventTarget {
     }
 
     this.updateMassProperties()
+
+    console.log('compilation test')
   }
 
   /**
