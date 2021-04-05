@@ -30,7 +30,7 @@ class ObjectCollisionMatrix {
       i = temp;
     }
 
-    return i + "-" + j in this.matrix;
+    return `${i}-${j}` in this.matrix;
   }
   /**
    * @method set
@@ -55,9 +55,9 @@ class ObjectCollisionMatrix {
     }
 
     if (value) {
-      this.matrix[i + "-" + j] = true;
+      this.matrix[`${i}-${j}`] = true;
     } else {
-      delete this.matrix[i + "-" + j];
+      delete this.matrix[`${i}-${j}`];
     }
   }
   /**
@@ -328,7 +328,7 @@ class Mat3 {
     target.x = (eqns[0 * nc + 3] - eqns[0 * nc + 2] * target.z - eqns[0 * nc + 1] * target.y) / eqns[0 * nc + 0];
 
     if (isNaN(target.x) || isNaN(target.y) || isNaN(target.z) || target.x === Infinity || target.y === Infinity || target.z === Infinity) {
-      throw "Could not solve equation! Got x=[" + target.toString() + "], b=[" + b.toString() + "], A=[" + this.toString() + "]";
+      throw `Could not solve equation! Got x=[${target.toString()}], b=[${b.toString()}], A=[${this.toString()}]`;
     }
 
     return target;
@@ -497,7 +497,7 @@ class Mat3 {
         p = eqns[nr + j + nc * i];
 
         if (isNaN(p) || p === Infinity) {
-          throw "Could not reverse! A=[" + this.toString() + "]";
+          throw `Could not reverse! A=[${this.toString()}]`;
         }
 
         target.e(i, j, p);
@@ -919,7 +919,7 @@ class Vec3 {
 
 
   toString() {
-    return this.x + "," + this.y + "," + this.z;
+    return `${this.x},${this.y},${this.z}`;
   }
   /**
    * Converts to an array
@@ -1083,8 +1083,8 @@ class AABB {
       let p = points[i];
 
       if (q) {
-        q.vmult(p, tmp);
-        p = tmp;
+        q.vmult(p, tmp$1);
+        p = tmp$1;
       }
 
       if (p.x > u.x) {
@@ -1340,7 +1340,7 @@ class AABB {
   }
 
 }
-const tmp = new Vec3();
+const tmp$1 = new Vec3();
 const transformIntoFrame_corners = [new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3()];
 
 /**
@@ -1591,7 +1591,7 @@ class Quaternion {
 
 
   toString() {
-    return this.x + "," + this.y + "," + this.z + "," + this.w;
+    return `${this.x},${this.y},${this.z},${this.w}`;
   }
   /**
    * Convert to an Array
@@ -1851,7 +1851,7 @@ class Quaternion {
         break;
 
       default:
-        throw new Error("Euler order " + order + " not supported yet.");
+        throw new Error(`Euler order ${order} not supported yet.`);
     }
 
     target.y = heading;
@@ -1999,6 +1999,77 @@ class Quaternion {
 const sfv_t1 = new Vec3();
 const sfv_t2 = new Vec3();
 
+/**
+ * Storage for Ray casting data.
+ * @class RaycastResult
+ * @constructor
+ */
+class RaycastResult {
+  // The index of the hit triangle, if the hit shape was a trimesh.
+  // Distance to the hit. Will be set to -1 if there was no hit.
+  // If the ray should stop traversing the bodies.
+  constructor() {
+    this.rayFromWorld = new Vec3();
+    this.rayToWorld = new Vec3();
+    this.hitNormalWorld = new Vec3();
+    this.hitPointWorld = new Vec3();
+    this.hasHit = false;
+    this.shape = null;
+    this.body = null;
+    this.hitFaceIndex = -1;
+    this.distance = -1;
+    this.shouldStop = false;
+  }
+  /**
+   * Reset all result data.
+   * @method reset
+   */
+
+
+  reset() {
+    this.rayFromWorld.setZero();
+    this.rayToWorld.setZero();
+    this.hitNormalWorld.setZero();
+    this.hitPointWorld.setZero();
+    this.hasHit = false;
+    this.shape = null;
+    this.body = null;
+    this.hitFaceIndex = -1;
+    this.distance = -1;
+    this.shouldStop = false;
+  }
+  /**
+   * @method abort
+   */
+
+
+  abort() {
+    this.shouldStop = true;
+  }
+  /**
+   * @method set
+   * @param {Vec3} rayFromWorld
+   * @param {Vec3} rayToWorld
+   * @param {Vec3} hitNormalWorld
+   * @param {Vec3} hitPointWorld
+   * @param {Shape} shape
+   * @param {Body} body
+   * @param {number} distance
+   */
+
+
+  set(rayFromWorld, rayToWorld, hitNormalWorld, hitPointWorld, shape, body, distance) {
+    this.rayFromWorld.copy(rayFromWorld);
+    this.rayToWorld.copy(rayToWorld);
+    this.hitNormalWorld.copy(hitNormalWorld);
+    this.hitPointWorld.copy(hitPointWorld);
+    this.shape = shape;
+    this.body = body;
+    this.distance = distance;
+  }
+
+}
+
 const SHAPE_TYPES = {
   SPHERE: 1,
   PLANE: 2,
@@ -2044,7 +2115,7 @@ class Shape {
 
 
   updateBoundingSphereRadius() {
-    throw "computeBoundingSphereRadius() not implemented for shape type " + this.type;
+    throw `computeBoundingSphereRadius() not implemented for shape type ${this.type}`;
   }
   /**
    * Get the volume of this shape
@@ -2054,7 +2125,7 @@ class Shape {
 
 
   volume() {
-    throw "volume() not implemented for shape type " + this.type;
+    throw `volume() not implemented for shape type ${this.type}`;
   }
   /**
    * Calculates the inertia in the local frame for this shape.
@@ -2066,11 +2137,11 @@ class Shape {
 
 
   calculateLocalInertia(mass, target) {
-    throw "calculateLocalInertia() not implemented for shape type " + this.type;
+    throw `calculateLocalInertia() not implemented for shape type ${this.type}`;
   }
 
   calculateWorldAABB(pos, quat, min, max) {
-    throw "calculateWorldAABB() not implemented for shape type " + this.type;
+    throw `calculateWorldAABB() not implemented for shape type ${this.type}`;
   }
 
 }
@@ -2121,8 +2192,8 @@ class Transform {
 
   static pointToLocalFrame(position, quaternion, worldPoint, result = new Vec3()) {
     worldPoint.vsub(position, result);
-    quaternion.conjugate(tmpQuat);
-    tmpQuat.vmult(result, result);
+    quaternion.conjugate(tmpQuat$1);
+    tmpQuat$1.vmult(result, result);
     return result;
   }
 
@@ -2145,7 +2216,7 @@ class Transform {
   }
 
 }
-const tmpQuat = new Quaternion();
+const tmpQuat$1 = new Quaternion();
 
 /**
  * A set of polygons describing a convex shape.
@@ -2252,7 +2323,7 @@ class ConvexPolyhedron extends Shape {
       // Check so all vertices exists for this face
       for (let j = 0; j < this.faces[i].length; j++) {
         if (!this.vertices[this.faces[i][j]]) {
-          throw new Error("Vertex " + this.faces[i][j] + " not found!");
+          throw new Error(`Vertex ${this.faces[i][j]} not found!`);
         }
       }
 
@@ -2263,10 +2334,10 @@ class ConvexPolyhedron extends Shape {
       const vertex = this.vertices[this.faces[i][0]];
 
       if (n.dot(vertex) < 0) {
-        console.error(".faceNormals[" + i + "] = Vec3(" + n.toString() + ") looks like it points into the shape? The vertices follow. Make sure they are ordered CCW around the normal, using the right hand rule.");
+        console.error(`.faceNormals[${i}] = Vec3(${n.toString()}) looks like it points into the shape? The vertices follow. Make sure they are ordered CCW around the normal, using the right hand rule.`);
 
         for (let j = 0; j < this.faces[i].length; j++) {
-          console.warn(".vertices[" + this.faces[i][j] + "] = Vec3(" + this.vertices[this.faces[i][j]].toString() + ")");
+          console.warn(`.vertices[${this.faces[i][j]}] = Vec3(${this.vertices[this.faces[i][j]].toString()})`);
         }
       }
     }
@@ -2658,7 +2729,7 @@ class ConvexPolyhedron extends Shape {
       let depth = planeNormalWS.dot(pVtxIn[i]) + planeEqWS; // ???
 
       if (depth <= minDist) {
-        console.log("clamped: depth=" + depth + " to minDist=" + minDist);
+        console.log(`clamped: depth=${depth} to minDist=${minDist}`);
         depth = minDist;
       }
 
@@ -2976,7 +3047,7 @@ class ConvexPolyhedron extends Shape {
     } // If we got here, all dot products were of the same sign.
 
 
-    return  -1;
+    return -1;
   }
   /**
    * Get max and min dot product of a convex hull at position (pos,quat) projected onto an axis.
@@ -3317,6 +3388,8 @@ class Body extends EventTarget {
     this.collisionFilterGroup = typeof options.collisionFilterGroup === 'number' ? options.collisionFilterGroup : 1;
     this.collisionFilterMask = typeof options.collisionFilterMask === 'number' ? options.collisionFilterMask : -1;
     this.collisionResponse = typeof options.collisionResponse === 'boolean' ? options.collisionResponse : true;
+    this.ccdSpeedThreshold = typeof options.ccdSpeedThreshold === 'number' ? options.ccdSpeedThreshold : 10;
+    this.ccdIterations = typeof options.ccdIterations == 'number' ? options.ccdIterations : 30;
     this.position = new Vec3();
     this.previousPosition = new Vec3();
     this.interpolatedPosition = new Vec3();
@@ -3627,7 +3700,7 @@ class Body extends EventTarget {
     const shapeOrientations = this.shapeOrientations;
     const N = shapes.length;
     const offset = tmpVec;
-    const orientation = tmpQuat$1;
+    const orientation = tmpQuat;
     const bodyQuat = this.quaternion;
     const aabb = this.aabb;
     const shapeAABB = updateAABB_shapeAABB;
@@ -3867,11 +3940,14 @@ class Body extends EventTarget {
     const tz = torque.z * angularFactor.z;
     angularVelo.x += dt * (e[0] * tx + e[1] * ty + e[2] * tz);
     angularVelo.y += dt * (e[3] * tx + e[4] * ty + e[5] * tz);
-    angularVelo.z += dt * (e[6] * tx + e[7] * ty + e[8] * tz); // Use new velocity  - leap frog
+    angularVelo.z += dt * (e[6] * tx + e[7] * ty + e[8] * tz);
+    /*
+    // Use new velocity  - leap frog
+    pos.x += velo.x * dt
+    pos.y += velo.y * dt
+    pos.z += velo.z * dt
+    */
 
-    pos.x += velo.x * dt;
-    pos.y += velo.y * dt;
-    pos.z += velo.z * dt;
     quat.integrate(this.angularVelocity, dt, this.angularFactor, quat);
 
     if (quatNormalize) {
@@ -3880,11 +3956,91 @@ class Body extends EventTarget {
       } else {
         quat.normalize();
       }
+    } // CCD
+
+
+    if (!this.integrateToTimeOfImpact(dt)) {
+      // Regular position update.
+      pos.x += velo.x * dt;
+      pos.y += velo.y * dt;
+      pos.z += velo.z * dt;
     }
 
     this.aabbNeedsUpdate = true; // Update world inertia
 
     this.updateInertiaWorld();
+  }
+
+  integrateToTimeOfImpact(dt) {
+    const direction = new Vec3(),
+          startToEnd = new Vec3(),
+          rememberPosition = new Vec3(),
+          result = new RaycastResult();
+    let end = new Vec3(),
+        integrate_velodt = new Vec3();
+    if (this.ccdSpeedThreshold < 0 || this.velocity.length() < Math.pow(this.ccdSpeedThreshold, 2)) return false;
+    let ignoreBodies = [];
+    direction.copy(this.velocity);
+    direction.normalize();
+    this.velocity.scale(dt, end);
+    end.vadd(this.position, end);
+    end.vsub(this.position, startToEnd);
+    const len = startToEnd.length();
+    let timeOfImpact = 1,
+        hitBody;
+
+    for (let i = 0; i < this.shapes.length; i++) {
+      var shape = this.shapes[i];
+      this.world.raycastClosest(this.position, end, {
+        collisionFilterMask: shape.collisionFilterMask,
+        collisionFilterGroup: shape.collisionFilterGroup,
+        skipBackfaces: true
+      }, result);
+      hitBody = result.body;
+      if (hitBody && hitBody !== this && ignoreBodies.indexOf(hitBody) === -1) break;
+    }
+
+    if (!hitBody || !timeOfImpact) return false;
+    end = result.hitPointWorld;
+    end.vsub(this.position, startToEnd);
+    timeOfImpact = result.distance / len; // guess
+
+    rememberPosition.copy(this.position); // Got a start and end point. Approximate time of impact using binary search
+
+    let iter = 0,
+        tmin = 0,
+        tmid = timeOfImpact,
+        tmax = 1;
+
+    while (tmax >= tmin && iter < this.ccdIterations) {
+      iter++; // calculate the midpoint
+
+      tmid = (tmax + tmin) / 2; // Move the body to that point
+
+      startToEnd.scale(tmid, integrate_velodt);
+      rememberPosition.vadd(integrate_velodt, this.position);
+      this.updateAABB(); // check overlap
+
+      var overlapResult = [];
+      this.world.narrowphase.getContacts([this], [hitBody], this.world, overlapResult, [], [], []);
+      var overlaps = this.aabb.overlaps(hitBody.aabb) && overlapResult.length > 0;
+
+      if (overlaps) {
+        // change max to search lower interval
+        tmax = tmid;
+      } else {
+        // change min to search upper interval
+        tmin = tmid;
+      }
+    }
+
+    timeOfImpact = tmax; // Need to guarantee overlap to resolve collisions
+
+    this.position.copy(rememberPosition); // move to TOI
+
+    startToEnd.scale(timeOfImpact, integrate_velodt);
+    this.position.vadd(integrate_velodt, this.position);
+    return true;
   }
 
 }
@@ -3956,7 +4112,7 @@ Body.sleepEvent = {
   type: 'sleep'
 };
 const tmpVec = new Vec3();
-const tmpQuat$1 = new Quaternion();
+const tmpQuat = new Quaternion();
 const updateAABB_shapeAABB = new AABB();
 const uiw_m1 = new Mat3();
 const uiw_m2 = new Mat3();
@@ -4107,7 +4263,7 @@ class Broadphase {
     for (let i = 0; i !== N; i++) {
       const id1 = p1[i].id;
       const id2 = p2[i].id;
-      const key = id1 < id2 ? id1 + "," + id2 : id2 + "," + id1;
+      const key = id1 < id2 ? `${id1},${id2}` : `${id2},${id1}`;
       t[key] = i;
       t.keys.push(key);
     }
@@ -4235,9 +4391,9 @@ class GridBroadphase extends Broadphase {
     const types = Shape.types;
     const SPHERE = types.SPHERE;
     const PLANE = types.PLANE;
-    const BOX = types.BOX;
-    const COMPOUND = types.COMPOUND;
-    const CONVEXPOLYHEDRON = types.CONVEXPOLYHEDRON;
+    types.BOX;
+    types.COMPOUND;
+    types.CONVEXPOLYHEDRON;
     const bins = this.bins;
     const binLengths = this.binLengths;
     const Nbins = this.bins.length; // Reset bins
@@ -4485,77 +4641,6 @@ class NaiveBroadphase extends Broadphase {
 
 }
 
-/**
- * Storage for Ray casting data.
- * @class RaycastResult
- * @constructor
- */
-class RaycastResult {
-  // The index of the hit triangle, if the hit shape was a trimesh.
-  // Distance to the hit. Will be set to -1 if there was no hit.
-  // If the ray should stop traversing the bodies.
-  constructor() {
-    this.rayFromWorld = new Vec3();
-    this.rayToWorld = new Vec3();
-    this.hitNormalWorld = new Vec3();
-    this.hitPointWorld = new Vec3();
-    this.hasHit = false;
-    this.shape = null;
-    this.body = null;
-    this.hitFaceIndex = -1;
-    this.distance = -1;
-    this.shouldStop = false;
-  }
-  /**
-   * Reset all result data.
-   * @method reset
-   */
-
-
-  reset() {
-    this.rayFromWorld.setZero();
-    this.rayToWorld.setZero();
-    this.hitNormalWorld.setZero();
-    this.hitPointWorld.setZero();
-    this.hasHit = false;
-    this.shape = null;
-    this.body = null;
-    this.hitFaceIndex = -1;
-    this.distance = -1;
-    this.shouldStop = false;
-  }
-  /**
-   * @method abort
-   */
-
-
-  abort() {
-    this.shouldStop = true;
-  }
-  /**
-   * @method set
-   * @param {Vec3} rayFromWorld
-   * @param {Vec3} rayToWorld
-   * @param {Vec3} hitNormalWorld
-   * @param {Vec3} hitPointWorld
-   * @param {Shape} shape
-   * @param {Body} body
-   * @param {number} distance
-   */
-
-
-  set(rayFromWorld, rayToWorld, hitNormalWorld, hitPointWorld, shape, body, distance) {
-    this.rayFromWorld.copy(rayFromWorld);
-    this.rayToWorld.copy(rayToWorld);
-    this.hitNormalWorld.copy(hitNormalWorld);
-    this.hitPointWorld.copy(hitPointWorld);
-    this.shape = shape;
-    this.body = body;
-    this.distance = distance;
-  }
-
-}
-
 const RAY_MODES = {
   CLOSEST: 1,
   ANY: 2,
@@ -4622,9 +4707,9 @@ class Ray {
     this.hasHit = false;
     this.result.reset();
     this.updateDirection();
-    this.getAABB(tmpAABB);
+    this.getAABB(tmpAABB$1);
     tmpArray.length = 0;
-    world.broadphase.aabbQuery(world, tmpAABB, tmpArray);
+    world.broadphase.aabbQuery(world, tmpAABB$1, tmpArray);
     this.intersectBodies(tmpArray);
     return this.hasHit;
   }
@@ -4777,8 +4862,8 @@ class Ray {
   }
 
   _intersectHeightfield(shape, quat, position, body, reportedShape) {
-    const data = shape.data;
-    const w = shape.elementSize; // Convert the ray to local heightfield coordinates
+    shape.data;
+    shape.elementSize; // Convert the ray to local heightfield coordinates
 
     const localRay = intersectHeightfield_localRay; //new Ray(this.from, this.to);
 
@@ -4969,10 +5054,10 @@ class Ray {
     const localTo = intersectTrimesh_localTo;
     const worldIntersectPoint = intersectTrimesh_worldIntersectPoint;
     const worldNormal = intersectTrimesh_worldNormal;
-    const faceList = options && options.faceList || null; // Checking faces
+    options && options.faceList || null; // Checking faces
 
     const indices = mesh.indices;
-    const vertices = mesh.vertices; // const normals = mesh.faceNormals
+    mesh.vertices; // const normals = mesh.faceNormals
 
     const from = this.from;
     const to = this.to;
@@ -5085,7 +5170,7 @@ class Ray {
 Ray.CLOSEST = 1;
 Ray.ANY = 2;
 Ray.ALL = 4;
-const tmpAABB = new AABB();
+const tmpAABB$1 = new AABB();
 const tmpArray = [];
 const v1 = new Vec3();
 const v2 = new Vec3();
@@ -5137,7 +5222,7 @@ const intersectTrimesh_localFrom = new Vec3();
 const intersectTrimesh_localTo = new Vec3();
 const intersectTrimesh_worldNormal = new Vec3();
 const intersectTrimesh_worldIntersectPoint = new Vec3();
-const intersectTrimesh_localAABB = new AABB();
+new AABB();
 const intersectTrimesh_triangles = [];
 const intersectTrimesh_treeTransform = new Transform();
 Ray.prototype[Shape.types.TRIMESH] = Ray.prototype._intersectTrimesh;
@@ -5352,8 +5437,8 @@ class SAPBroadphase extends Broadphase {
     }
 
     const axisList = this.axisList;
-    const lower = aabb.lowerBound[axis];
-    const upper = aabb.upperBound[axis];
+    aabb.lowerBound[axis];
+    aabb.upperBound[axis];
 
     for (let i = 0; i < axisList.length; i++) {
       const b = axisList[i];
@@ -5747,10 +5832,10 @@ class Equation {
     const invIi = bi.invInertiaWorldSolve;
     const invIj = bj.invInertiaWorldSolve;
     let result = invMassi + invMassj;
-    invIi.vmult(GA.rotational, tmp$1);
-    result += tmp$1.dot(GA.rotational);
-    invIj.vmult(GB.rotational, tmp$1);
-    result += tmp$1.dot(GB.rotational);
+    invIi.vmult(GA.rotational, tmp);
+    result += tmp.dot(GA.rotational);
+    invIj.vmult(GB.rotational, tmp);
+    result += tmp.dot(GB.rotational);
     return result;
   }
   /**
@@ -5806,7 +5891,7 @@ const invIj_vmult_tauj = new Vec3();
  * @return {Number}
  */
 
-const tmp$1 = new Vec3();
+const tmp = new Vec3();
 const addToWlambda_temp = new Vec3();
 
 /**
@@ -5842,12 +5927,12 @@ class ContactEquation extends Equation {
     const rjxn = ContactEquation_computeB_temp2;
     const vi = bi.velocity;
     const wi = bi.angularVelocity;
-    const fi = bi.force;
-    const taui = bi.torque;
+    bi.force;
+    bi.torque;
     const vj = bj.velocity;
     const wj = bj.angularVelocity;
-    const fj = bj.force;
-    const tauj = bj.torque;
+    bj.force;
+    bj.torque;
     const penetrationVec = ContactEquation_computeB_temp3;
     const GA = this.jacobianElementA;
     const GB = this.jacobianElementB;
@@ -5996,8 +6081,8 @@ class ConeEquation extends Equation {
     const b = this.b;
     const ni = this.axisA;
     const nj = this.axisB;
-    const nixnj = tmpVec1;
-    const njxni = tmpVec2;
+    const nixnj = tmpVec1$2;
+    const njxni = tmpVec2$2;
     const GA = this.jacobianElementA;
     const GB = this.jacobianElementB; // Caluclate cross products
 
@@ -6019,8 +6104,8 @@ class ConeEquation extends Equation {
   }
 
 }
-const tmpVec1 = new Vec3();
-const tmpVec2 = new Vec3();
+const tmpVec1$2 = new Vec3();
+const tmpVec2$2 = new Vec3();
 
 /**
  * Rotational constraint. Works to keep the local vectors orthogonal to each other in world space.
@@ -6211,7 +6296,7 @@ class LockConstraint extends PointToPointConstraint {
   update() {
     const bodyA = this.bodyA;
     const bodyB = this.bodyB;
-    const motor = this.motorEquation;
+    this.motorEquation;
     const r1 = this.rotationalEquation1;
     const r2 = this.rotationalEquation2;
     const r3 = this.rotationalEquation3;
@@ -6249,10 +6334,10 @@ class RotationalMotorEquation extends Equation {
   }
 
   computeB(h) {
-    const a = this.a;
+    this.a;
     const b = this.b;
-    const bi = this.bi;
-    const bj = this.bj;
+    this.bi;
+    this.bj;
     const axisA = this.axisA;
     const axisB = this.axisB;
     const GA = this.jacobianElementA;
@@ -6392,10 +6477,10 @@ class FrictionEquation extends Equation {
   }
 
   computeB(h) {
-    const a = this.a;
+    this.a;
     const b = this.b;
-    const bi = this.bi;
-    const bj = this.bj;
+    this.bi;
+    this.bj;
     const ri = this.ri;
     const rj = this.rj;
     const rixt = FrictionEquation_computeB_temp1;
@@ -6880,7 +6965,7 @@ class RaycastVehicle {
 
 
   addToWorld(world) {
-    const constraints = this.constraints;
+    this.constraints;
     world.addBody(this.chassisBody);
     const that = this;
 
@@ -7034,7 +7119,7 @@ class RaycastVehicle {
 
 
   removeFromWorld(world) {
-    const constraints = this.constraints;
+    this.constraints;
     world.removeBody(this.chassisBody);
     world.removeEventListener('preStep', this.preStepCallback);
     this.world = null;
@@ -7170,7 +7255,7 @@ class RaycastVehicle {
 
     for (let i = 0; i < numWheels; i++) {
       const wheel = wheelInfos[i];
-      const groundObject = wheel.raycastResult.body;
+      wheel.raycastResult.body;
 
       wheel.sideImpulse = 0;
       wheel.forwardImpulse = 0;
@@ -7302,7 +7387,7 @@ class RaycastVehicle {
 const tmpVec4 = new Vec3();
 const tmpVec5 = new Vec3();
 const tmpVec6 = new Vec3();
-const tmpRay = new Ray();
+new Ray();
 const castRay_rayvector = new Vec3();
 const castRay_target = new Vec3();
 const directions = [new Vec3(1, 0, 0), new Vec3(0, 1, 0), new Vec3(0, 0, 1)];
@@ -8347,7 +8432,7 @@ class Heightfield extends Shape {
   }
 
   getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle) {
-    return xi + "_" + yi + "_" + (getUpperTriangle ? 1 : 0);
+    return `${xi}_${yi}_${getUpperTriangle ? 1 : 0}`;
   }
 
   getCachedConvexTrianglePillar(xi, yi, getUpperTriangle) {
@@ -8755,7 +8840,7 @@ class OctreeNode {
 
 
   aabbQuery(aabb, result) {
-    const nodeData = this.data; // abort if the range does not intersect this node
+    this.data; // abort if the range does not intersect this node
     // if (!this.aabb.overlaps(aabb)){
     //     return result;
     // }
@@ -8764,7 +8849,7 @@ class OctreeNode {
     // Add child data
     // @todo unwrap recursion into a queue / loop, that's faster in JS
 
-    const children = this.children; // for (let i = 0, N = this.children.length; i !== N; i++) {
+    this.children; // for (let i = 0, N = this.children.length; i !== N; i++) {
     //     children[i].aabbQuery(aabb, result);
     // }
 
@@ -8795,9 +8880,9 @@ class OctreeNode {
   rayQuery(ray, treeTransform, result) {
     // Use aabb query for now.
     // @todo implement real ray query which needs less lookups
-    ray.getAABB(tmpAABB$1);
-    tmpAABB$1.toLocalFrame(treeTransform, tmpAABB$1);
-    this.aabbQuery(tmpAABB$1, result);
+    ray.getAABB(tmpAABB);
+    tmpAABB.toLocalFrame(treeTransform, tmpAABB);
+    this.aabbQuery(tmpAABB, result);
     return result;
   }
   /**
@@ -8837,7 +8922,7 @@ class Octree extends OctreeNode {
 
 }
 const halfDiagonal = new Vec3();
-const tmpAABB$1 = new AABB();
+const tmpAABB = new AABB();
 
 /**
  * @class Trimesh
@@ -9001,7 +9086,7 @@ class Trimesh extends Shape {
     const edges = {};
 
     const add = (a, b) => {
-      const key = a < b ? a + "_" + b : b + "_" + a;
+      const key = a < b ? `${a}_${b}` : `${b}_${a}`;
       edges[key] = true;
     };
 
@@ -9179,7 +9264,7 @@ class Trimesh extends Shape {
     const l = aabb.lowerBound;
     const u = aabb.upperBound;
     const n = this.vertices.length;
-    const vertices = this.vertices;
+    this.vertices;
     const v = computeLocalAABB_worldVert;
     this.getVertex(0, v);
     l.copy(v);
@@ -9253,7 +9338,7 @@ class Trimesh extends Shape {
         const n = this.vertices.length / 3,
             verts = this.vertices;
         const minx,miny,minz,maxx,maxy,maxz;
-         const v = tempWorldVertex;
+          const v = tempWorldVertex;
         for(let i=0; i<n; i++){
             this.getVertex(i, v);
             quat.vmult(v, v);
@@ -9263,12 +9348,12 @@ class Trimesh extends Shape {
             } else if(v.x > maxx || maxx===undefined){
                 maxx = v.x;
             }
-             if (v.y < miny || miny===undefined){
+              if (v.y < miny || miny===undefined){
                 miny = v.y;
             } else if(v.y > maxy || maxy===undefined){
                 maxy = v.y;
             }
-             if (v.z < minz || minz===undefined){
+              if (v.z < minz || minz===undefined){
                 minz = v.z;
             } else if(v.z > maxz || maxz===undefined){
                 maxz = v.z;
@@ -9649,7 +9734,7 @@ class SplitSolver extends Solver {
         subsolver.addEquation(eqs[i]);
       }
 
-      const iter = subsolver.solve(dt, dummyWorld);
+      subsolver.solve(dt, dummyWorld);
       subsolver.removeAllEquations();
       n++;
     }
@@ -9975,7 +10060,7 @@ class Narrowphase {
     averageContactPointA.setZero();
     averageContactPointB.setZero();
     const bodyA = c.bi;
-    const bodyB = c.bj;
+    c.bj;
 
     for (let i = 0; i !== numContacts; i++) {
       c = this.result[this.result.length - 1 - i];
@@ -10019,8 +10104,8 @@ class Narrowphase {
     this.frictionResult = frictionResult;
     const qi = tmpQuat1;
     const qj = tmpQuat2;
-    const xi = tmpVec1$2;
-    const xj = tmpVec2$2;
+    const xi = tmpVec1;
+    const xj = tmpVec2;
 
     for (let k = 0, N = p1.length; k !== N; k++) {
       // Get current collision bodies
@@ -11265,8 +11350,8 @@ class Narrowphase {
 const averageNormal = new Vec3();
 const averageContactPointA = new Vec3();
 const averageContactPointB = new Vec3();
-const tmpVec1$2 = new Vec3();
-const tmpVec2$2 = new Vec3();
+const tmpVec1 = new Vec3();
+const tmpVec2 = new Vec3();
 const tmpQuat1 = new Quaternion();
 const tmpQuat2 = new Quaternion();
 
@@ -11532,7 +11617,7 @@ class TupleDictionary {
       i = temp;
     }
 
-    return this.data[i + "-" + j];
+    return this.data[`${i}-${j}`];
   }
   /**
    * @method set
@@ -11549,7 +11634,7 @@ class TupleDictionary {
       i = temp;
     }
 
-    const key = i + "-" + j; // Check if key already exists
+    const key = `${i}-${j}`; // Check if key already exists
 
     if (!this.get(i, j)) {
       this.data.keys.push(key);
@@ -11768,7 +11853,7 @@ class World extends EventTarget {
     options.from = from;
     options.to = to;
     options.callback = callback;
-    return tmpRay$1.intersectWorld(this, options);
+    return tmpRay.intersectWorld(this, options);
   }
   /**
    * Ray cast, and stop at the first result. Note that the order is random - but the method is fast.
@@ -11790,7 +11875,7 @@ class World extends EventTarget {
     options.from = from;
     options.to = to;
     options.result = result;
-    return tmpRay$1.intersectWorld(this, options);
+    return tmpRay.intersectWorld(this, options);
   }
   /**
    * Ray cast, and return information of the closest hit.
@@ -11812,7 +11897,7 @@ class World extends EventTarget {
     options.from = from;
     options.to = to;
     options.result = result;
-    return tmpRay$1.intersectWorld(this, options);
+    return tmpRay.intersectWorld(this, options);
   }
   /**
    * Add a rigid body to the simulation.
@@ -11991,7 +12076,7 @@ class World extends EventTarget {
     let profilingStart = -Infinity;
     const constraints = this.constraints;
     const frictionEquationPool = World_step_frictionEquationPool;
-    const gnorm = gravity.length();
+    gravity.length();
     const gx = gravity.x;
     const gy = gravity.y;
     const gz = gravity.z;
@@ -12109,12 +12194,12 @@ class World extends EventTarget {
       } // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
 
 
-      let mu = cm.friction; // c.restitution = cm.restitution;
+      cm.friction; // c.restitution = cm.restitution;
       // If friction or restitution were specified in the material, use them
 
       if (bi.material && bj.material) {
         if (bi.material.friction >= 0 && bj.material.friction >= 0) {
-          mu = bi.material.friction * bj.material.friction;
+          bi.material.friction * bj.material.friction;
         }
 
         if (bi.material.restitution >= 0 && bj.material.restitution >= 0) {
@@ -12328,8 +12413,8 @@ class World extends EventTarget {
 
     for (let i = 0; i !== N; i++) {
       const b = bodies[i];
-      const force = b.force;
-      const tau = b.torque;
+      b.force;
+      b.torque;
       b.force.set(0, 0, 0);
       b.torque.set(0, 0, 0);
     }
@@ -12337,8 +12422,8 @@ class World extends EventTarget {
 
 } // Temp stuff
 
-const tmpAABB1 = new AABB();
-const tmpRay$1 = new Ray(); // performance.now() fallback on Date.now()
+new AABB();
+const tmpRay = new Ray(); // performance.now() fallback on Date.now()
 
 const performance = globalThis.performance || {};
 

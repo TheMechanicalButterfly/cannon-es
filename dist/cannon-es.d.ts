@@ -983,6 +983,8 @@ declare module "objects/Body" {
         collisionFilterGroup?: number;
         collisionFilterMask?: number;
         collisionResponse?: boolean;
+        ccdSpeedThreshold?: number;
+        ccdIterations?: number;
         position?: Vec3;
         velocity?: Vec3;
         mass?: number;
@@ -1011,6 +1013,8 @@ declare module "objects/Body" {
         collisionFilterGroup: number;
         collisionFilterMask: number;
         collisionResponse: boolean;
+        ccdSpeedThreshold: number;
+        ccdIterations: number;
         position: Vec3;
         previousPosition: Vec3;
         interpolatedPosition: Vec3;
@@ -1093,6 +1097,7 @@ declare module "objects/Body" {
         updateMassProperties(): void;
         getVelocityAtWorldPoint(worldPoint: Vec3, result: Vec3): Vec3;
         integrate(dt: number, quatNormalize: boolean, quatNormalizeFast: boolean): void;
+        integrateToTimeOfImpact(dt: number): boolean;
     }
 }
 declare module "collision/ObjectCollisionMatrix" {
