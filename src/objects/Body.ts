@@ -739,10 +739,12 @@ export class Body extends EventTarget {
     angularVelo.y += dt * (e[3] * tx + e[4] * ty + e[5] * tz)
     angularVelo.z += dt * (e[6] * tx + e[7] * ty + e[8] * tz)
 
+    /*
     // Use new velocity  - leap frog
     pos.x += velo.x * dt
     pos.y += velo.y * dt
     pos.z += velo.z * dt
+    */
 
     quat.integrate(this.angularVelocity, dt, this.angularFactor, quat)
 
@@ -755,6 +757,13 @@ export class Body extends EventTarget {
     }
 
     // CCD
+    if(!this.integrateToTimeOfImpact(dt)) {
+
+      // Regular position update.
+      pos.x += velo.x * dt
+      pos.y += velo.y * dt
+      pos.z += velo.z * dt
+    }
 
     this.aabbNeedsUpdate = true
 
@@ -764,13 +773,13 @@ export class Body extends EventTarget {
 
   integrateToTimeOfImpact(dt: number): boolean {
     const direction = new Vec3(),
-          startToEnd = new Vec3(),
-          rememberPosition = new Vec3(),
-          result = new RaycastResult()
-    let   end = new Vec3(),
-          integrate_velodt = new Vec3()
+      startToEnd = new Vec3(),
+      rememberPosition = new Vec3(),
+      result = new RaycastResult()
+    let end = new Vec3(),
+      integrate_velodt = new Vec3()
 
-    if(this.ccdSpeedThreshold < 0 || this.velocity.length() < Math.pow(this.ccdSpeedThreshold, 2)) return false
+    if (this.ccdSpeedThreshold < 0 || this.velocity.length() < Math.pow(this.ccdSpeedThreshold, 2)) return false
 
     let ignoreBodies: Body[] = []
 
@@ -785,57 +794,62 @@ export class Body extends EventTarget {
     const len = startToEnd.length()
 
     let timeOfImpact: number = 1,
-        hitBody
+      hitBody
 
-    for(let i = 0; i < this.shapes.length; i++){
-        var shape = this.shapes[i];
-        this.world!.raycastClosest(this.position, end, {
-            collisionFilterMask: shape.collisionFilterMask,
-            collisionFilterGroup: shape.collisionFilterGroup,
-            skipBackfaces: true
-        }, result);
-        hitBody = result.body
+    for (let i = 0; i < this.shapes.length; i++) {
+      var shape = this.shapes[i]
+      this.world!.raycastClosest(
+        this.position,
+        end,
+        {
+          collisionFilterMask: shape.collisionFilterMask,
+          collisionFilterGroup: shape.collisionFilterGroup,
+          skipBackfaces: true,
+        },
+        result
+      )
+      hitBody = result.body
 
-        if (hitBody && hitBody !== this && ignoreBodies.indexOf(hitBody) === -1) break
+      if (hitBody && hitBody !== this && ignoreBodies.indexOf(hitBody) === -1) break
     }
 
-    if(!hitBody || !timeOfImpact) return false
+    if (!hitBody || !timeOfImpact) return false
 
     end = result.hitPointWorld
-    end.vsub(this.position, startToEnd);
+    end.vsub(this.position, startToEnd)
     timeOfImpact = result.distance / len // guess
 
     rememberPosition.copy(this.position)
 
     // Got a start and end point. Approximate time of impact using binary search
     let iter = 0,
-        tmin = 0,
-        tmid = timeOfImpact,
-        tmax = 1
+      tmin = 0,
+      tmid = timeOfImpact,
+      tmax = 1
 
     while (tmax >= tmin && iter < this.ccdIterations) {
-        iter++
+      iter++
 
-        // calculate the midpoint
-        tmid = (tmax + tmin) / 2
+      // calculate the midpoint
+      tmid = (tmax + tmin) / 2
 
-        // Move the body to that point
-        startToEnd.scale(tmid, integrate_velodt)
-        rememberPosition.vadd(integrate_velodt, this.position)
-        this.updateAABB()
+      // Move the body to that point
+      startToEnd.scale(tmid, integrate_velodt)
+      rememberPosition.vadd(integrate_velodt, this.position)
+      this.updateAABB()
 
-        // check overlap
-        var overlapResult: any[] = []
-        this.world!.narrowphase.getContacts([this], [hitBody], this.world!, overlapResult, [], [], [])
-        var overlaps = this.aabb.overlaps(hitBody.aabb) && overlapResult.length > 0
+      // check overlap
+      var overlapResult: any[] = []
+      this.world!.narrowphase.getContacts([this], [hitBody], this.world!, overlapResult, [], [], [])
+      var overlaps = this.aabb.overlaps(hitBody.aabb) && overlapResult.length > 0
 
-        if (overlaps) {
-            // change max to search lower interval
-            tmax = tmid
-        } else {
-            // change min to search upper interval
-            tmin = tmid
-        }
+      if (overlaps) {
+        // change max to search lower interval
+        tmax = tmid
+      } else {
+        // change min to search upper interval
+        tmin = tmid
+      }
     }
 
     timeOfImpact = tmax // Need to guarantee overlap to resolve collisions
