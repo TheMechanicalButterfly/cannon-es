@@ -3,6 +3,7 @@ import { Vec3 } from '../math/Vec3'
 import { Mat3 } from '../math/Mat3'
 import { Quaternion } from '../math/Quaternion'
 import { AABB } from '../collision/AABB'
+import { RaycastResult } from '../collision/RaycastResult'
 import { Box } from '../shapes/Box'
 import type { Shape } from '../shapes/Shape'
 import type { Material } from '../material/Material'
@@ -755,50 +756,47 @@ export class Body extends EventTarget {
 
     // CCD
 
-
     this.aabbNeedsUpdate = true
 
     // Update world inertia
     this.updateInertiaWorld()
   }
 
-  /*
   integrateToTimeOfImpact(dt: number): boolean {
     const direction = new Vec3(),
-          end = new Vec3(),
           startToEnd = new Vec3(),
           rememberPosition = new Vec3(),
           result = new RaycastResult()
+    let   end = new Vec3(),
+          integrate_velodt = new Vec3()
 
     if(this.ccdSpeedThreshold < 0 || this.velocity.length() < Math.pow(this.ccdSpeedThreshold, 2)) return false
 
-    let ignoreBodies = []
+    let ignoreBodies: Body[] = []
 
     direction.copy(this.velocity)
     direction.normalize()
 
-    this.velocity.mult(dt, end)
+    this.velocity.scale(dt, end)
     end.vadd(this.position, end)
 
     end.vsub(this.position, startToEnd)
 
     const len = startToEnd.length()
 
-    let timeOfImpact = 1,
+    let timeOfImpact: number = 1,
         hitBody
 
     for(let i = 0; i < this.shapes.length; i++){
         var shape = this.shapes[i];
-        this.world.raycastClosest(this.position, end, {
+        this.world!.raycastClosest(this.position, end, {
             collisionFilterMask: shape.collisionFilterMask,
             collisionFilterGroup: shape.collisionFilterGroup,
             skipBackfaces: true
         }, result);
         hitBody = result.body
 
-        if(hitBody === this || ignoreBodies.indexOf(hitBody) !== -1) hitBody = null
-
-        if(hitBody) break
+        if (hitBody && hitBody !== this && ignoreBodies.indexOf(hitBody) === -1) break
     }
 
     if(!hitBody || !timeOfImpact) return false
@@ -822,13 +820,13 @@ export class Body extends EventTarget {
         tmid = (tmax + tmin) / 2
 
         // Move the body to that point
-        startToEnd.mult(tmid, integrate_velodt)
+        startToEnd.scale(tmid, integrate_velodt)
         rememberPosition.vadd(integrate_velodt, this.position)
-        this.computeAABB()
+        this.updateAABB()
 
         // check overlap
-        var overlapResult = []
-        this.world.narrowphase.getContacts([this], [hitBody], this.world, overlapResult, [], [], [])
+        var overlapResult: any[] = []
+        this.world!.narrowphase.getContacts([this], [hitBody], this.world!, overlapResult, [], [], [])
         var overlaps = this.aabb.overlaps(hitBody.aabb) && overlapResult.length > 0
 
         if (overlaps) {
@@ -845,12 +843,11 @@ export class Body extends EventTarget {
     this.position.copy(rememberPosition)
 
     // move to TOI
-    startToEnd.mult(timeOfImpact, integrate_velodt)
+    startToEnd.scale(timeOfImpact, integrate_velodt)
     this.position.vadd(integrate_velodt, this.position)
 
     return true
   }
-  */
 }
 
 /**
