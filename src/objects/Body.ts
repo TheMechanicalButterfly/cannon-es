@@ -757,7 +757,7 @@ export class Body extends EventTarget {
     }
 
     // CCD
-    if(!this.integrateToTimeOfImpact(dt)) {
+    if (!this.integrateToTimeOfImpact(dt)) {
 
       // Regular position update.
       pos.x += velo.x * dt
