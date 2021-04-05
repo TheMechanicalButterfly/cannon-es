@@ -157,6 +157,8 @@ export class Body extends EventTarget {
     this.index = -1
     this.world = null
     this.preStep = null
+    this.ccdSpeedThreshold = typeof options.ccdSpeedThreshold === 'number' ? options.ccdSpeedThreshold : 10
+    this.ccdIterations = typeof options.ccdIterations == 'number' ? options.ccdIterations : 30
     this.postStep = null
     this.vlambda = new Vec3()
 
@@ -747,10 +749,101 @@ export class Body extends EventTarget {
       }
     }
 
+    // CCD
+
+
     this.aabbNeedsUpdate = true
 
     // Update world inertia
     this.updateInertiaWorld()
+  }
+
+  integrateToTimeOfImpact(dt: number): boolean {
+    const direction = new Vec3(),
+          end = new Vec3(),
+          startToEnd = new Vec3(),
+          rememberPosition = new Vec3(),
+          result = new RaycastResult()
+
+    if(this.ccdSpeedThreshold < 0 || this.velocity.length() < Math.pow(this.ccdSpeedThreshold, 2)) return false
+
+    let ignoreBodies = []
+
+    direction.copy(this.velocity)
+    direction.normalize()
+
+    this.velocity.mult(dt, end)
+    end.vadd(this.position, end)
+
+    end.vsub(this.position, startToEnd)
+
+    const len = startToEnd.length()
+
+    let timeOfImpact = 1,
+        hitBody
+
+    for(let i = 0; i < this.shapes.length; i++){
+        var shape = this.shapes[i];
+        this.world.raycastClosest(this.position, end, {
+            collisionFilterMask: shape.collisionFilterMask,
+            collisionFilterGroup: shape.collisionFilterGroup,
+            skipBackfaces: true
+        }, result);
+        hitBody = result.body
+
+        if(hitBody === this || ignoreBodies.indexOf(hitBody) !== -1) hitBody = null
+
+        if(hitBody) break
+    }
+
+    if(!hitBody || !timeOfImpact) return false
+
+    end = result.hitPointWorld
+    end.vsub(this.position, startToEnd);
+    timeOfImpact = result.distance / len // guess
+
+    rememberPosition.copy(this.position)
+
+    // Got a start and end point. Approximate time of impact using binary search
+    let iter = 0,
+        tmin = 0,
+        tmid = timeOfImpact,
+        tmax = 1
+
+    while (tmax >= tmin && iter < this.ccdIterations) {
+        iter++
+
+        // calculate the midpoint
+        tmid = (tmax + tmin) / 2
+
+        // Move the body to that point
+        startToEnd.mult(tmid, integrate_velodt)
+        rememberPosition.vadd(integrate_velodt, this.position)
+        this.computeAABB()
+
+        // check overlap
+        var overlapResult = []
+        this.world.narrowphase.getContacts([this], [hitBody], this.world, overlapResult, [], [], [])
+        var overlaps = this.aabb.overlaps(hitBody.aabb) && overlapResult.length > 0
+
+        if (overlaps) {
+            // change max to search lower interval
+            tmax = tmid
+        } else {
+            // change min to search upper interval
+            tmin = tmid
+        }
+    }
+
+    timeOfImpact = tmax // Need to guarantee overlap to resolve collisions
+
+    this.position.copy(rememberPosition)
+
+    // move to TOI
+    startToEnd.mult(timeOfImpact, integrate_velodt)
+    this.position.vadd(integrate_velodt, this.position)
+
+    return true
   }
 }
 
