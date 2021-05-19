@@ -830,7 +830,7 @@ export class Body extends EventTarget {
       iter++
 
       // calculate the midpoint
-      tmid = Math.floor((tmax + tmin) / 2)
+      tmid = (tmax + tmin) / 2
 
       // Move the body to that point
       startToEnd.scale(tmid, integrate_velodt)
@@ -851,7 +851,7 @@ export class Body extends EventTarget {
       }
     }
 
-    timeOfImpact = tmax // Need to guarantee overlap to resolve collisions
+    timeOfImpact = tmax * .99 // Need to guarantee overlap to resolve collisions
 
     this.position.copy(rememberPosition)
 

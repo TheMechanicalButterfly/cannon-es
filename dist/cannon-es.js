@@ -4021,9 +4021,9 @@ class Body extends EventTarget {
       rememberPosition.vadd(integrate_velodt, this.position);
       this.updateAABB(); // check overlap
 
-      var overlapResult = [];
+      let overlapResult = [];
       this.world.narrowphase.getContacts([this], [hitBody], this.world, overlapResult, [], [], []);
-      var overlaps = this.aabb.overlaps(hitBody.aabb) && overlapResult.length > 0;
+      const overlaps = this.aabb.overlaps(hitBody.aabb) && overlapResult.length > 0;
 
       if (overlaps) {
         // change max to search lower interval
@@ -4034,7 +4034,7 @@ class Body extends EventTarget {
       }
     }
 
-    timeOfImpact = tmax; // Need to guarantee overlap to resolve collisions
+    timeOfImpact = tmax * .99; // Need to guarantee overlap to resolve collisions
 
     this.position.copy(rememberPosition); // move to TOI
 
